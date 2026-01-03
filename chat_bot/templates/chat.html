@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Chatbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <style>
+        /* ... (pura existing CSS same rahega) ... */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 80vh;
+            max-height: 700px;
+            background: white;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(to right, #4a6ee0, #6a11cb);
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .header-text h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header-text p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4cd964;
+            border-radius: 50%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .bot-message {
+            background: white;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        /* New Styles for Formatted Output */
+        .message-content {
+            word-wrap: break-word;
+        }
+        
+        .ai-heading {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .ai-section {
+            margin-bottom: 10px;
+        }
+        
+        .ai-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .ai-list {
+            padding-left: 20px;
+            margin: 6px 0;
+        }
+        
+        .ai-list li {
+            margin-bottom: 4px;
+            padding-left: 6px;
+        }
+        
+        .ai-list.ordered {
+            list-style-type: decimal;
+        }
+        
+        .ai-list.unordered {
+            list-style-type: disc;
+        }
+        
+        .ai-code {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 6px 0;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            color: #2d3748;
+        }
+        
+        .ai-key-points {
+            background: linear-gradient(135deg, #f6f9ff, #f0f4ff);
+            border-left: 3px solid #667eea;
+            padding: 8px 10px;
+            margin: 6px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 13px;
+        }
+        
+        .ai-emphasis {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .ai-note {
+            background: #e8f4fd;
+            border-left: 3px solid #2196f3;
+            padding: 8px 10px;
+            margin: 6px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 12px;
+        }
+        
+        .ai-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+        
+        .ai-table th {
+            background: #edf2f7;
+            padding: 6px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .ai-table td {
+            padding: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .ai-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .ai-blockquote {
+            border-left: 3px solid #ccc;
+            padding-left: 10px;
+            margin: 6px 0;
+            color: #555;
+            font-style: italic;
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 18px;
+            width: fit-content;
+            margin-right: auto;
+            border: 1px solid #e9ecef;
+            display: none;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #764ba2;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        .chat-input-area {
+            padding: 16px;
+            border-top: 1px solid #e9ecef;
+            background: white;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .send-button i {
+            font-size: 18px;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            body {
+                padding: 0;
+                background: white;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .ai-table {
+                font-size: 11px;
+            }
+        }
+    </style>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="bot-avatar">AI</div>
+            <div class="header-text">
+                <h2>AI Assistant</h2>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Online</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="chat-messages" id="chat-box">
+            <!-- Welcome Message -->
+            <div class="welcome-message">
+                Hello! I'm your AI assistant. How can I help you today?
+            </div>
+            
+            <!-- Messages will be dynamically added here -->
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="chat-input-area">
+            <input 
+                type="text" 
+                class="message-input" 
+                id="message-input" 
+                placeholder="Type your message here..."
+                autocomplete="off"
+            >
+            <button class="send-button" id="send-button">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const chatBox = document.getElementById('chat-box');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // CSRF Token function (for Django/Flask)
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Function to format LLM response dynamically
+        function formatLLMResponse(rawResponse) {
+            // If response is already HTML formatted, return as is
+            if (rawResponse.includes('<div') || rawResponse.includes('<p>') || 
+                rawResponse.includes('<h') || rawResponse.includes('<ul') || 
+                rawResponse.includes('<ol') || rawResponse.includes('<table')) {
+                return rawResponse;
+            }
+            
+            let formattedResponse = '';
+            
+            // Split by paragraphs or sections
+            const paragraphs = rawResponse.split('\n\n');
+            
+            // Detect if it's a list or structured content
+            const hasLists = rawResponse.includes('1.') || rawResponse.includes('- ') || 
+                           rawResponse.includes('* ') || rawResponse.includes('•');
+            const hasCode = rawResponse.includes('```') || rawResponse.includes('    ') || 
+                          rawResponse.includes('\t');
+            const hasHeadings = paragraphs.some(p => p.includes(':') && p.split(':')[0].length < 30);
+            
+            if (hasHeadings) {
+                // Format with headings and sections
+                formattedResponse += `<div class="ai-heading">${paragraphs[0].split(':')[0]}</div>`;
+                
+                for (let i = 0; i < paragraphs.length; i++) {
+                    const para = paragraphs[i].trim();
+                    if (!para) continue;
+                    
+                    if (para.includes(':')) {
+                        const [heading, ...content] = para.split(':');
+                        if (heading.length < 30 && content.length > 0) {
+                            formattedResponse += `
+                                <div class="ai-section">
+                                    <div class="ai-emphasis">${heading.trim()}:</div>
+                                    <div>${content.join(':').trim()}</div>
+                                </div>`;
+                        } else {
+                            formattedResponse += `<div class="ai-section">${para}</div>`;
+                        }
+                    } else if (para.match(/^\d+\.\s/) || para.match(/^[•\-*]\s/)) {
+                        // Handle lists
+                        const listItems = para.split('\n').filter(item => item.trim());
+                        const isOrdered = para.match(/^\d+\.\s/);
+                        
+                        formattedResponse += `<ul class="ai-list ${isOrdered ? 'ordered' : 'unordered'}">`;
+                        listItems.forEach(item => {
+                            const cleanItem = item.replace(/^[\d•\-*\.\s]+/, '').trim();
+                            formattedResponse += `<li>${cleanItem}</li>`;
+                        });
+                        formattedResponse += '</ul>';
+                    } else if (para.includes('```')) {
+                        // Handle code blocks
+                        const codeMatch = para.match(/```([\s\S]*?)```/);
+                        if (codeMatch) {
+                            formattedResponse += `<div class="ai-code">${escapeHtml(codeMatch[1])}</div>`;
+                        }
+                    } else if (para.length > 150) {
+                        // Long paragraph - add as normal section
+                        formattedResponse += `<div class="ai-section">${para}</div>`;
+                    } else if (para.length > 0) {
+                        // Short paragraph - add as key point
+                        formattedResponse += `<div class="ai-key-points">${para}</div>`;
+                    }
+                }
+            } else if (hasLists) {
+                // Format as structured list
+                formattedResponse += `<div class="ai-heading">Key Points</div>`;
+                
+                for (const para of paragraphs) {
+                    if (!para.trim()) continue;
+                    
+                    if (para.match(/^\d+\.\s/) || para.match(/^[•\-*]\s/)) {
+                        const listItems = para.split('\n').filter(item => item.trim());
+                        const isOrdered = para.match(/^\d+\.\s/);
+                        
+                        formattedResponse += `<ul class="ai-list ${isOrdered ? 'ordered' : 'unordered'}">`;
+                        listItems.forEach(item => {
+                            const cleanItem = item.replace(/^[\d•\-*\.\s]+/, '').trim();
+                            formattedResponse += `<li>${cleanItem}</li>`;
+                        });
+                        formattedResponse += '</ul>';
+                    } else if (para.includes('Note:') || para.includes('Important:')) {
+                        formattedResponse += `<div class="ai-note">${para}</div>`;
+                    } else {
+                        formattedResponse += `<div class="ai-section">${para}</div>`;
+                    }
+                }
+            } else if (hasCode) {
+                // Format with code highlighting
+                formattedResponse += `<div class="ai-heading">Code Explanation</div>`;
+                
+                for (const para of paragraphs) {
+                    if (!para.trim()) continue;
+                    
+                    if (para.includes('```')) {
+                        const codeMatch = para.match(/```([\s\S]*?)```/);
+                        if (codeMatch) {
+                            formattedResponse += `<div class="ai-code">${escapeHtml(codeMatch[1])}</div>`;
+                        }
+                    } else if (para.match(/^\s{4,}/) || para.match(/^\t/)) {
+                        // Indented text as code
+                        formattedResponse += `<div class="ai-code">${escapeHtml(para)}</div>`;
+                    } else if (para.includes('Example:') || para.includes('Code:')) {
+                        formattedResponse += `<div class="ai-emphasis">${para}</div>`;
+                    } else {
+                        formattedResponse += `<div class="ai-section">${para}</div>`;
+                    }
+                }
+            } else {
+                // Simple paragraph formatting
+                if (paragraphs.length === 1) {
+                    formattedResponse = `<div class="ai-section">${rawResponse}</div>`;
+                } else {
+                    formattedResponse += `<div class="ai-heading">Detailed Response</div>`;
+                    
+                    for (let i = 0; i < paragraphs.length; i++) {
+                        const para = paragraphs[i].trim();
+                        if (!para) continue;
+                        
+                        if (i === 0) {
+                            formattedResponse += `<div class="ai-section">${para}</div>`;
+                        } else if (para.length > 100) {
+                            formattedResponse += `<div class="ai-section">${para}</div>`;
+                        } else {
+                            formattedResponse += `<div class="ai-key-points">${para}</div>`;
+                        }
+                    }
+                }
+            }
+            
+            // Add a note at the end if response is long
+            if (rawResponse.length > 500) {
+                formattedResponse += `<div class="ai-note">This is a comprehensive response. Let me know if you need more details on any specific point.</div>`;
+            }
+            
+            return formattedResponse;
+        }
+
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Add message to chat with formatting
+        function addMessage(content, sender, timestamp = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const time = timestamp || new Date().toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            // Format AI responses
+            let formattedContent = content;
+            if (sender === 'bot') {
+                formattedContent = formatLLMResponse(content);
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">${formattedContent}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTyping() {
+            typingIndicator.style.display = 'flex';
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Hide typing indicator
+        function hideTyping() {
+            typingIndicator.style.display = 'none';
+        }
+
+        // Send message to backend
+        async function sendMessageToBackend(message) {
+            // Show typing indicator
+            showTyping();
+            
+            try {
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('message', message);
+                
+                // Get CSRF token if available
+                const csrfToken = getCSRFToken();
+                
+                // Headers
+                const headers = {
+                    'X-Requested-With': 'XMLHttpRequest'
+                };
+                
+                if (csrfToken) {
+                    headers['X-CSRFToken'] = csrfToken;
+                }
+                
+                // Send request to backend
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: headers,
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Hide typing indicator
+                hideTyping();
+                
+                // Add bot response to chat
+                if (data.response) {
+                    addMessage(data.response, 'bot');
+                } else {
+                    addMessage('Sorry, I encountered an error processing your request.', 'bot');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                hideTyping();
+                addMessage('Error: Unable to connect to the server. Please try again.', 'bot');
+            }
+        }
+
+        // Handle sending message
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Send to backend
+            sendMessageToBackend(message);
+        }
+
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Clear welcome message on first user message
+        let welcomeCleared = false;
+        messageInput.addEventListener('input', () => {
+            if (!welcomeCleared && messageInput.value.trim()) {
+                const welcomeMsg = document.querySelector('.welcome-message');
+                if (welcomeMsg) {
+                    welcomeMsg.style.display = 'none';
+                    welcomeCleared = true;
+                }
+            }
+        });
+
+        // Auto-focus input
+        messageInput.focus();
+    </script>
+</body>
+</html>
