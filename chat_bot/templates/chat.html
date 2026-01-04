@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Chatbot</title>
+    <title>AI Chatbot with Streaming</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <style>
-        /* ... (pura existing CSS same rahega) ... */
         * {
             margin: 0;
             padding: 0;
@@ -25,11 +24,11 @@
 
         .chat-container {
             width: 100%;
-            max-width: 500px;
-            height: 80vh;
-            max-height: 700px;
+            max-width: 550px;
+            height: 85vh;
+            max-height: 800px;
             background: white;
-            border-radius: 16px;
+            border-radius: 20px;
             display: flex;
             flex-direction: column;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -39,33 +38,30 @@
         .chat-header {
             background: linear-gradient(to right, #4a6ee0, #6a11cb);
             color: white;
-            padding: 20px 24px;
+            padding: 22px 24px;
             display: flex;
             align-items: center;
             gap: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .bot-avatar {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2);
+            width: 42px;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.25);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 700;
             font-size: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
         }
 
         .header-text h2 {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 19px;
+            font-weight: 650;
             margin-bottom: 4px;
-        }
-
-        .header-text p {
-            font-size: 13px;
-            opacity: 0.9;
         }
 
         .status-indicator {
@@ -80,60 +76,235 @@
             height: 8px;
             background: #4cd964;
             border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .chat-messages {
             flex: 1;
-            padding: 20px;
+            padding: 24px;
             overflow-y: auto;
-            background: #f8f9fa;
+            background: #f8f9ff;
             display: flex;
             flex-direction: column;
+            gap: 20px;
+        }
+
+        .message-container {
+            display: flex;
             gap: 12px;
+            animation: fadeIn 0.3s ease;
+            align-items: flex-start;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-container.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .message-avatar.bot {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: 2px solid #667eea;
+        }
+
+        .message-avatar.user {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: 2px solid #3a7bd5;
+        }
+
+        .message-content-wrapper {
+            max-width: calc(100% - 60px);
+            display: flex;
+            flex-direction: column;
         }
 
         .message {
-            max-width: 80%;
-            padding: 12px 16px;
+            padding: 14px 18px;
             border-radius: 18px;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 14.5px;
+            line-height: 1.55;
             word-wrap: break-word;
+            position: relative;
         }
 
-        .user-message {
+        .message.bot {
+            background: white;
+            color: #2d3748;
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            border: 1px solid #e0e7ff;
+        }
+
+        .message.user {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
         }
 
-        .bot-message {
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 6px;
+            text-align: right;
+            padding: 0 4px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
             background: white;
-            color: #333;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e9ecef;
+            border-radius: 18px;
+            width: fit-content;
+            border: 1px solid #e0e7ff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: none;
         }
 
-        /* New Styles for Formatted Output */
-        .message-content {
+        .typing-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #764ba2;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { 
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .typing-text {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .chat-input-area {
+            padding: 18px 20px;
+            border-top: 1px solid #e9ecef;
+            background: white;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e0e7ff;
+            border-radius: 24px;
+            font-size: 14.5px;
+            outline: none;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-button {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .send-button i {
+            font-size: 18px;
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 30px 20px;
+            color: #666;
+            font-size: 14.5px;
+            line-height: 1.6;
+        }
+
+        /* Message content styling */
+        .message-text {
             word-wrap: break-word;
         }
         
         .ai-heading {
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 15.5px;
+            font-weight: 650;
             color: #2d3748;
-            margin-bottom: 8px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e0e7ff;
         }
         
         .ai-section {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            line-height: 1.6;
         }
         
         .ai-section:last-child {
@@ -141,13 +312,14 @@
         }
         
         .ai-list {
-            padding-left: 20px;
-            margin: 6px 0;
+            padding-left: 22px;
+            margin: 8px 0;
         }
         
         .ai-list li {
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             padding-left: 6px;
+            line-height: 1.5;
         }
         
         .ai-list.ordered {
@@ -159,183 +331,84 @@
         }
         
         .ai-code {
-            background: #f7fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 8px 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            margin: 6px 0;
+            background: #f1f5ff;
+            border: 1px solid #d6e4ff;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            font-size: 12.5px;
+            margin: 8px 0;
             overflow-x: auto;
             white-space: pre-wrap;
             color: #2d3748;
+            line-height: 1.4;
         }
         
         .ai-key-points {
             background: linear-gradient(135deg, #f6f9ff, #f0f4ff);
             border-left: 3px solid #667eea;
-            padding: 8px 10px;
-            margin: 6px 0;
-            border-radius: 0 6px 6px 0;
-            font-size: 13px;
+            padding: 10px 14px;
+            margin: 8px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 13.5px;
+            line-height: 1.5;
         }
         
         .ai-emphasis {
-            font-weight: 600;
+            font-weight: 650;
             color: #4a5568;
         }
         
         .ai-note {
             background: #e8f4fd;
             border-left: 3px solid #2196f3;
-            padding: 8px 10px;
-            margin: 6px 0;
-            border-radius: 0 6px 6px 0;
-            font-size: 12px;
+            padding: 10px 14px;
+            margin: 8px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 12.5px;
+            line-height: 1.5;
         }
-        
+
         .ai-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 8px 0;
-            font-size: 12px;
+            margin: 10px 0;
+            font-size: 13px;
+            border: 1px solid #e0e7ff;
+            border-radius: 8px;
+            overflow: hidden;
         }
         
         .ai-table th {
-            background: #edf2f7;
-            padding: 6px;
+            background: #edf2ff;
+            padding: 8px 10px;
             text-align: left;
-            font-weight: 600;
-            border: 1px solid #e2e8f0;
+            font-weight: 650;
+            border: 1px solid #e0e7ff;
         }
         
         .ai-table td {
-            padding: 6px;
-            border: 1px solid #e2e8f0;
+            padding: 8px 10px;
+            border: 1px solid #e0e7ff;
         }
         
         .ai-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        
-        .ai-blockquote {
-            border-left: 3px solid #ccc;
-            padding-left: 10px;
-            margin: 6px 0;
-            color: #555;
-            font-style: italic;
-        }
-
-        .message-time {
-            font-size: 11px;
-            opacity: 0.7;
-            margin-top: 8px;
-            text-align: right;
-        }
-
-        .typing-indicator {
-            display: flex;
-            gap: 4px;
-            padding: 12px 16px;
-            background: white;
-            border-radius: 18px;
-            width: fit-content;
-            margin-right: auto;
-            border: 1px solid #e9ecef;
-            display: none;
-        }
-
-        .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            background: #764ba2;
-            border-radius: 50%;
-            display: inline-block;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-6px); }
-        }
-
-        .chat-input-area {
-            padding: 16px;
-            border-top: 1px solid #e9ecef;
-            background: white;
-            display: flex;
-            gap: 12px;
-        }
-
-        .message-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 24px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .message-input:focus {
-            border-color: #667eea;
-        }
-
-        .send-button {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .send-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .send-button:active {
-            transform: translateY(0);
-        }
-
-        .send-button i {
-            font-size: 18px;
-        }
-
-        .welcome-message {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-size: 14px;
+            background: #f8f9ff;
         }
 
         /* Scrollbar styling */
         .chat-messages::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         .chat-messages::-webkit-scrollbar-track {
             background: #f1f1f1;
-            border-radius: 3px;
+            border-radius: 4px;
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
             background: #c1c1c1;
-            border-radius: 3px;
+            border-radius: 4px;
         }
 
         .chat-messages::-webkit-scrollbar-thumb:hover {
@@ -356,12 +429,33 @@
                 background: white;
             }
             
-            .message {
-                max-width: 90%;
+            .chat-messages {
+                padding: 16px;
+                gap: 16px;
             }
             
-            .ai-table {
-                font-size: 11px;
+            .message {
+                max-width: 85%;
+                padding: 12px 16px;
+            }
+            
+            .message-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+            
+            .chat-input-area {
+                padding: 14px 16px;
+            }
+            
+            .message-input {
+                padding: 12px 16px;
+            }
+            
+            .send-button {
+                width: 46px;
+                height: 46px;
             }
         }
     </style>
@@ -374,12 +468,14 @@
     <div class="chat-container">
         <!-- Chat Header -->
         <div class="chat-header">
-            <div class="bot-avatar">AI</div>
+            <div class="bot-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
             <div class="header-text">
                 <h2>AI Assistant</h2>
                 <div class="status-indicator">
                     <div class="status-dot"></div>
-                    <span>Online</span>
+                    <span>Online & Ready</span>
                 </div>
             </div>
         </div>
@@ -388,7 +484,9 @@
         <div class="chat-messages" id="chat-box">
             <!-- Welcome Message -->
             <div class="welcome-message">
-                Hello! I'm your AI assistant. How can I help you today?
+                <h3 style="margin-bottom: 10px; color: #4a6ee0;">Welcome to AI Assistant! 🤖</h3>
+                <p>I'm here to help you with questions, explanations, coding, and more.</p>
+                <p style="margin-top: 8px; font-size: 13px; opacity: 0.8;">Type your message below to get started...</p>
             </div>
             
             <!-- Messages will be dynamically added here -->
@@ -396,9 +494,15 @@
 
         <!-- Typing Indicator -->
         <div class="typing-indicator" id="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
+            <div class="message-avatar bot">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="typing-text">AI is typing...</div>
         </div>
 
         <!-- Chat Input Area -->
@@ -407,10 +511,11 @@
                 type="text" 
                 class="message-input" 
                 id="message-input" 
-                placeholder="Type your message here..."
+                placeholder="Ask me anything..."
                 autocomplete="off"
+                autofocus
             >
-            <button class="send-button" id="send-button">
+            <button class="send-button" id="send-button" title="Send Message">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
@@ -423,192 +528,176 @@
         const sendButton = document.getElementById('send-button');
         const typingIndicator = document.getElementById('typing-indicator');
 
-        // CSRF Token function (for Django/Flask)
-        function getCSRFToken() {
-            const name = 'csrftoken';
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
+        // State variables
+        let currentEventSource = null;
+        let currentBotMessageElement = null;
+        let isStreaming = false;
+        let accumulatedResponse = '';
 
-        // Function to format LLM response dynamically
-        function formatLLMResponse(rawResponse) {
-            // If response is already HTML formatted, return as is
-            if (rawResponse.includes('<div') || rawResponse.includes('<p>') || 
-                rawResponse.includes('<h') || rawResponse.includes('<ul') || 
-                rawResponse.includes('<ol') || rawResponse.includes('<table')) {
-                return rawResponse;
-            }
-            
-            let formattedResponse = '';
-            
-            // Split by paragraphs or sections
-            const paragraphs = rawResponse.split('\n\n');
-            
-            // Detect if it's a list or structured content
-            const hasLists = rawResponse.includes('1.') || rawResponse.includes('- ') || 
-                           rawResponse.includes('* ') || rawResponse.includes('•');
-            const hasCode = rawResponse.includes('```') || rawResponse.includes('    ') || 
-                          rawResponse.includes('\t');
-            const hasHeadings = paragraphs.some(p => p.includes(':') && p.split(':')[0].length < 30);
-            
-            if (hasHeadings) {
-                // Format with headings and sections
-                formattedResponse += `<div class="ai-heading">${paragraphs[0].split(':')[0]}</div>`;
-                
-                for (let i = 0; i < paragraphs.length; i++) {
-                    const para = paragraphs[i].trim();
-                    if (!para) continue;
-                    
-                    if (para.includes(':')) {
-                        const [heading, ...content] = para.split(':');
-                        if (heading.length < 30 && content.length > 0) {
-                            formattedResponse += `
-                                <div class="ai-section">
-                                    <div class="ai-emphasis">${heading.trim()}:</div>
-                                    <div>${content.join(':').trim()}</div>
-                                </div>`;
-                        } else {
-                            formattedResponse += `<div class="ai-section">${para}</div>`;
-                        }
-                    } else if (para.match(/^\d+\.\s/) || para.match(/^[•\-*]\s/)) {
-                        // Handle lists
-                        const listItems = para.split('\n').filter(item => item.trim());
-                        const isOrdered = para.match(/^\d+\.\s/);
-                        
-                        formattedResponse += `<ul class="ai-list ${isOrdered ? 'ordered' : 'unordered'}">`;
-                        listItems.forEach(item => {
-                            const cleanItem = item.replace(/^[\d•\-*\.\s]+/, '').trim();
-                            formattedResponse += `<li>${cleanItem}</li>`;
-                        });
-                        formattedResponse += '</ul>';
-                    } else if (para.includes('```')) {
-                        // Handle code blocks
-                        const codeMatch = para.match(/```([\s\S]*?)```/);
-                        if (codeMatch) {
-                            formattedResponse += `<div class="ai-code">${escapeHtml(codeMatch[1])}</div>`;
-                        }
-                    } else if (para.length > 150) {
-                        // Long paragraph - add as normal section
-                        formattedResponse += `<div class="ai-section">${para}</div>`;
-                    } else if (para.length > 0) {
-                        // Short paragraph - add as key point
-                        formattedResponse += `<div class="ai-key-points">${para}</div>`;
-                    }
-                }
-            } else if (hasLists) {
-                // Format as structured list
-                formattedResponse += `<div class="ai-heading">Key Points</div>`;
-                
-                for (const para of paragraphs) {
-                    if (!para.trim()) continue;
-                    
-                    if (para.match(/^\d+\.\s/) || para.match(/^[•\-*]\s/)) {
-                        const listItems = para.split('\n').filter(item => item.trim());
-                        const isOrdered = para.match(/^\d+\.\s/);
-                        
-                        formattedResponse += `<ul class="ai-list ${isOrdered ? 'ordered' : 'unordered'}">`;
-                        listItems.forEach(item => {
-                            const cleanItem = item.replace(/^[\d•\-*\.\s]+/, '').trim();
-                            formattedResponse += `<li>${cleanItem}</li>`;
-                        });
-                        formattedResponse += '</ul>';
-                    } else if (para.includes('Note:') || para.includes('Important:')) {
-                        formattedResponse += `<div class="ai-note">${para}</div>`;
-                    } else {
-                        formattedResponse += `<div class="ai-section">${para}</div>`;
-                    }
-                }
-            } else if (hasCode) {
-                // Format with code highlighting
-                formattedResponse += `<div class="ai-heading">Code Explanation</div>`;
-                
-                for (const para of paragraphs) {
-                    if (!para.trim()) continue;
-                    
-                    if (para.includes('```')) {
-                        const codeMatch = para.match(/```([\s\S]*?)```/);
-                        if (codeMatch) {
-                            formattedResponse += `<div class="ai-code">${escapeHtml(codeMatch[1])}</div>`;
-                        }
-                    } else if (para.match(/^\s{4,}/) || para.match(/^\t/)) {
-                        // Indented text as code
-                        formattedResponse += `<div class="ai-code">${escapeHtml(para)}</div>`;
-                    } else if (para.includes('Example:') || para.includes('Code:')) {
-                        formattedResponse += `<div class="ai-emphasis">${para}</div>`;
-                    } else {
-                        formattedResponse += `<div class="ai-section">${para}</div>`;
-                    }
-                }
-            } else {
-                // Simple paragraph formatting
-                if (paragraphs.length === 1) {
-                    formattedResponse = `<div class="ai-section">${rawResponse}</div>`;
-                } else {
-                    formattedResponse += `<div class="ai-heading">Detailed Response</div>`;
-                    
-                    for (let i = 0; i < paragraphs.length; i++) {
-                        const para = paragraphs[i].trim();
-                        if (!para) continue;
-                        
-                        if (i === 0) {
-                            formattedResponse += `<div class="ai-section">${para}</div>`;
-                        } else if (para.length > 100) {
-                            formattedResponse += `<div class="ai-section">${para}</div>`;
-                        } else {
-                            formattedResponse += `<div class="ai-key-points">${para}</div>`;
-                        }
-                    }
-                }
-            }
-            
-            // Add a note at the end if response is long
-            if (rawResponse.length > 500) {
-                formattedResponse += `<div class="ai-note">This is a comprehensive response. Let me know if you need more details on any specific point.</div>`;
-            }
-            
-            return formattedResponse;
-        }
-
-        // Helper function to escape HTML
+        // Function to escape HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Add message to chat with formatting
-        function addMessage(content, sender, timestamp = null) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
+        // Function to format markdown-like text
+        function formatResponse(text) {
+            if (!text) return '';
             
-            const time = timestamp || new Date().toLocaleTimeString([], { 
+            let formatted = escapeHtml(text);
+            
+            // Headers
+            formatted = formatted.replace(/^###\s+(.+)$/gm, '<h4 class="ai-heading">$1</h4>');
+            formatted = formatted.replace(/^##\s+(.+)$/gm, '<h3 class="ai-heading">$1</h3>');
+            formatted = formatted.replace(/^#\s+(.+)$/gm, '<h2 class="ai-heading">$1</h2>');
+            
+            // Bold and italic
+            formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong class="ai-emphasis">$1</strong>');
+            formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            
+            // Code blocks
+            formatted = formatted.replace(/```([\s\S]*?)```/g, function(match, code) {
+                return `<pre class="ai-code">${escapeHtml(code.trim())}</pre>`;
+            });
+            
+            // Inline code
+            formatted = formatted.replace(/`([^`]+)`/g, '<code class="ai-code">$1</code>');
+            
+            // Lists
+            const lines = formatted.split('\n');
+            let inList = false;
+            let listType = '';
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                // Check for ordered list
+                if (/^\d+\.\s+/.test(line)) {
+                    if (!inList || listType !== 'ordered') {
+                        if (inList) lines[i-1] += '</ul>';
+                        lines[i] = '<ul class="ai-list ordered"><li>' + line.replace(/^\d+\.\s+/, '') + '</li>';
+                        inList = true;
+                        listType = 'ordered';
+                    } else {
+                        lines[i] = '<li>' + line.replace(/^\d+\.\s+/, '') + '</li>';
+                    }
+                }
+                // Check for unordered list
+                else if (/^[-*•]\s+/.test(line)) {
+                    if (!inList || listType !== 'unordered') {
+                        if (inList) lines[i-1] += '</ul>';
+                        lines[i] = '<ul class="ai-list unordered"><li>' + line.replace(/^[-*•]\s+/, '') + '</li>';
+                        inList = true;
+                        listType = 'unordered';
+                    } else {
+                        lines[i] = '<li>' + line.replace(/^[-*•]\s+/, '') + '</li>';
+                    }
+                }
+                // End list
+                else if (inList && line.trim() === '') {
+                    lines[i-1] += '</ul>';
+                    inList = false;
+                    listType = '';
+                }
+            }
+            
+            // Close any open list
+            if (inList) {
+                lines[lines.length - 1] += '</ul>';
+            }
+            
+            formatted = lines.join('\n');
+            
+            // Paragraphs - only add if not already formatted
+            if (!formatted.includes('<h') && !formatted.includes('<pre') && !formatted.includes('<ul>')) {
+                const paragraphs = formatted.split('\n\n');
+                formatted = paragraphs.map(p => {
+                    if (p.trim()) {
+                        return `<div class="ai-section">${p}</div>`;
+                    }
+                    return '';
+                }).join('');
+            }
+            
+            return formatted;
+        }
+
+        // Add message to chat
+        function addMessage(content, sender) {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `message-container ${sender}`;
+            
+            const time = new Date().toLocaleTimeString([], { 
                 hour: '2-digit', 
                 minute: '2-digit' 
             });
             
-            // Format AI responses
             let formattedContent = content;
+            let avatarContent = '';
+            
             if (sender === 'bot') {
-                formattedContent = formatLLMResponse(content);
+                avatarContent = '<i class="fas fa-robot"></i>';
+                formattedContent = formatResponse(content);
+            } else {
+                avatarContent = '<i class="fas fa-user"></i>';
+                formattedContent = escapeHtml(content);
             }
             
-            messageDiv.innerHTML = `
-                <div class="message-content">${formattedContent}</div>
-                <div class="message-time">${time}</div>
+            messageContainer.innerHTML = `
+                <div class="message-avatar ${sender}">${avatarContent}</div>
+                <div class="message-content-wrapper">
+                    <div class="message ${sender}">
+                        <div class="message-text">${formattedContent}</div>
+                    </div>
+                    <div class="message-time">${time}</div>
+                </div>
             `;
             
-            chatBox.appendChild(messageDiv);
+            chatBox.appendChild(messageContainer);
             chatBox.scrollTop = chatBox.scrollHeight;
+            
+            return messageContainer;
+        }
+
+        // Create or update streaming bot message
+        function updateStreamingBotMessage(content, isComplete = false) {
+            if (!currentBotMessageElement && content.trim()) {
+                // Create new message container for bot
+                currentBotMessageElement = document.createElement('div');
+                currentBotMessageElement.className = 'message-container bot';
+                currentBotMessageElement.innerHTML = `
+                    <div class="message-avatar bot">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content-wrapper">
+                        <div class="message bot">
+                            <div class="message-text"></div>
+                        </div>
+                        <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </div>
+                `;
+                chatBox.appendChild(currentBotMessageElement);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+            
+            if (currentBotMessageElement && content) {
+                const messageText = currentBotMessageElement.querySelector('.message-text');
+                if (messageText) {
+                    let formattedContent = formatResponse(content);
+                    
+                    // Remove any existing cursor
+                    formattedContent = formattedContent.replace(/<span class="streaming-cursor"><\/span>/g, '');
+                    
+                    // Add cursor if not complete
+                    if (!isComplete) {
+                        formattedContent += '<span class="streaming-cursor">|</span>';
+                    }
+                    
+                    messageText.innerHTML = formattedContent;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }
         }
 
         // Show typing indicator
@@ -622,63 +711,54 @@
             typingIndicator.style.display = 'none';
         }
 
-        // Send message to backend
-        async function sendMessageToBackend(message) {
-            // Show typing indicator
-            showTyping();
+        // Handle stream errors
+        function handleStreamError(error) {
+            console.error('Stream error:', error);
+            hideTyping();
             
-            try {
-                // Prepare form data
-                const formData = new FormData();
-                formData.append('message', message);
-                
-                // Get CSRF token if available
-                const csrfToken = getCSRFToken();
-                
-                // Headers
-                const headers = {
-                    'X-Requested-With': 'XMLHttpRequest'
-                };
-                
-                if (csrfToken) {
-                    headers['X-CSRFToken'] = csrfToken;
-                }
-                
-                // Send request to backend
-                const response = await fetch(window.location.href, {
-                    method: 'POST',
-                    headers: headers,
-                    body: formData
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                // Hide typing indicator
-                hideTyping();
-                
-                // Add bot response to chat
-                if (data.response) {
-                    addMessage(data.response, 'bot');
-                } else {
-                    addMessage('Sorry, I encountered an error processing your request.', 'bot');
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                hideTyping();
-                addMessage('Error: Unable to connect to the server. Please try again.', 'bot');
+            if (currentEventSource) {
+                currentEventSource.close();
+                currentEventSource = null;
+            }
+            
+            if (currentBotMessageElement) {
+                updateStreamingBotMessage('Sorry, I encountered an error. Please try again.', true);
+            } else {
+                addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+            }
+            
+            resetStreamingState();
+        }
+
+        // Reset streaming state
+        function resetStreamingState() {
+            isStreaming = false;
+            sendButton.disabled = false;
+            messageInput.disabled = false;
+            accumulatedResponse = '';
+            currentEventSource = null;
+        }
+
+        // Cancel current stream
+        function cancelStream() {
+            if (currentEventSource) {
+                currentEventSource.close();
+                currentEventSource = null;
+            }
+            hideTyping();
+            resetStreamingState();
+            
+            if (currentBotMessageElement && accumulatedResponse.length === 0) {
+                currentBotMessageElement.remove();
+                currentBotMessageElement = null;
             }
         }
 
-        // Handle sending message
-        function sendMessage() {
+        // Send message with streaming
+        async function sendMessage() {
             const message = messageInput.value.trim();
             
-            if (!message) return;
+            if (!message || isStreaming) return;
             
             // Add user message to chat
             addMessage(message, 'user');
@@ -686,8 +766,75 @@
             // Clear input
             messageInput.value = '';
             
-            // Send to backend
-            sendMessageToBackend(message);
+            // Disable input while streaming
+            isStreaming = true;
+            sendButton.disabled = true;
+            messageInput.disabled = true;
+            
+            // Reset accumulated response
+            accumulatedResponse = '';
+            currentBotMessageElement = null;
+            
+            try {
+                // Clear welcome message if it's the first message
+                const welcomeMsg = document.querySelector('.welcome-message');
+                if (welcomeMsg) {
+                    welcomeMsg.style.display = 'none';
+                }
+                
+                // Show typing indicator
+                showTyping();
+                
+                // Create EventSource for streaming
+                const eventSource = new EventSource(`/chat/stream/?message=${encodeURIComponent(message)}`);
+                currentEventSource = eventSource;
+                
+                eventSource.onmessage = function(event) {
+                    hideTyping();
+                    
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.token) {
+                            accumulatedResponse += data.token;
+                            updateStreamingBotMessage(accumulatedResponse, false);
+                        }
+                        
+                        if (data.complete || data.error) {
+                            eventSource.close();
+                            currentEventSource = null;
+                            
+                            if (data.error) {
+                                updateStreamingBotMessage('Error: ' + data.error, true);
+                            } else {
+                                updateStreamingBotMessage(accumulatedResponse, true);
+                            }
+                            
+                            resetStreamingState();
+                        }
+                        
+                    } catch (parseError) {
+                        console.error('Error parsing SSE data:', parseError);
+                        handleStreamError(parseError);
+                    }
+                };
+                
+                eventSource.onerror = function(error) {
+                    eventSource.close();
+                    handleStreamError(error);
+                };
+                
+                // Set timeout to prevent hanging connections
+                setTimeout(() => {
+                    if (isStreaming && currentEventSource && currentEventSource.readyState !== EventSource.CLOSED) {
+                        currentEventSource.close();
+                        handleStreamError(new Error('Request timeout'));
+                    }
+                }, 60000); // 1 minute timeout
+                
+            } catch (error) {
+                handleStreamError(error);
+            }
         }
 
         // Event Listeners
@@ -700,20 +847,26 @@
             }
         });
 
-        // Clear welcome message on first user message
-        let welcomeCleared = false;
-        messageInput.addEventListener('input', () => {
-            if (!welcomeCleared && messageInput.value.trim()) {
-                const welcomeMsg = document.querySelector('.welcome-message');
-                if (welcomeMsg) {
-                    welcomeMsg.style.display = 'none';
-                    welcomeCleared = true;
-                }
+        // Cancel streaming on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isStreaming) {
+                cancelStream();
             }
         });
 
         // Auto-focus input
         messageInput.focus();
+        
+        // Clear welcome message on first user input
+        messageInput.addEventListener('input', () => {
+            const welcomeMsg = document.querySelector('.welcome-message');
+            if (welcomeMsg && messageInput.value.trim()) {
+                welcomeMsg.style.display = 'none';
+            }
+        });
+
+        // Add smooth scrolling
+        chatBox.style.scrollBehavior = 'smooth';
     </script>
 </body>
 </html>
